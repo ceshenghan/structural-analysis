@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Shenghan Zhang, HKUST">
+<title>Beam &amp; Frame Analysis – CIVL 3310 Structural Analysis</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  /* ---------- attribution: header subtitle, panel footer, canvas stamp ---------- */
+  .app-sub { font-size: 12px; color: #4b5563; margin: 0 0 8px 0; padding-bottom: 6px; border-bottom: 1px solid #e3e6eb; }
+  .app-footer { margin-top: 14px; padding-top: 8px; border-top: 1px solid #e3e6eb; font-size: 11px; color: #6b7280; line-height: 1.5; }
+  .app-footer b { color: #1a3a6b; }
+  .app-footer .fine { color: #9ca3af; }
+</style>
+</head>
+<body>
+<!-- ============================ left panel ============================ -->
+<div id="side">
+  <h3>Beam &amp; Frame Analysis</h3>
+  <div class="app-sub">Teaching tool for CIVL 3310 Structural Analysis · HKUST</div>
+  <!-- 1. global settings -->
+  <div class="box" id="settings">
+    <div class="row">Stiffness
+      <select id="selMode">
+        <option value="num">numeric EI, EA</option>
+        <option value="sym">symbolic EI (axially rigid)</option>
+      </select>
+      <label><input type="checkbox" id="chkRigid"> neglect axial deformation (EA = ∞)</label>
+    </div>
+    <div class="row">Lengths
+      <select id="selLen">
+        <option value="m">metres</option>
+        <option value="L">multiples of L</option>
+      </select>
+      Coefficients
+      <select id="selFrac">
+        <option value="dec">decimals</option>
+        <option value="frac">fractions</option>
+      </select>
+    </div>
+    <div class="muted">Load values may be numbers or symbols: <code>P</code>, <code>-2P</code>, <code>q</code>,
+      <code>3/2 q</code>, <code>M0</code>, <code>P/2</code>. Positions may use <code>L</code> for the member
+      length, e.g. <code>L/2</code>, <code>0.25L</code>.</div>
+  </div>
+  <!-- 2. plot values of the load symbols (filled by JS, hidden when no symbol is used) -->
+  <div class="box" id="symbols" hidden>
+    <b>Symbol plot values</b> <span class="muted">(used only to draw the diagrams / locate extrema)</span>
+    <div id="symList"></div>
+  </div>
+  <!-- 3. tools -->
+  <div class="tools row" id="tools">
+    <button data-tool="select" class="active">Select</button>
+    <button data-tool="node">Add node</button>
+    <button data-tool="member">Add member</button>
+    <button data-tool="release">Release</button>
+    <button data-tool="support">Support</button>
+    <button data-tool="nload">Node load</button>
+    <button data-tool="mload">Member load</button>
+    <button data-tool="move">Move</button>
+    <button data-tool="delete">Delete</button>
+  </div>
+  <!-- 4. tool options (one box per tool, shown/hidden by JS) -->
+  <div id="toolOpts">
+    <div class="box opt" id="optRelease">Release
+      <select id="relType">
+        <option value="hinge">Hinge – moment release</option>
+        <option value="shear">Shear release – transverse slip, no relative rotation</option>
+        <option value="axial">Axial release – slides along the member</option>
+        <option value="rigid">Rigid – remove release</option>
+      </select>
+      <div class="muted">Click a node (all member ends there), near a member end (that end only) or in the
+        middle of a member (a node with the release is inserted). The same release again removes it.</div>
+    </div>
+    <div class="box opt" id="optSupport">Support
+      <select id="supType">
+        <option value="pin">Pin</option>
+        <option value="roller">Roller</option>
+        <option value="fixed">Fixed</option>
+        <option value="guided">Guided (slider)</option>
+      </select>
+      rotation <input id="supAngle" type="number" value="0" step="15">°
+      <div class="muted">0 = ground below, 90 = wall on the right, −90 = wall on the left.
+        Clicking an existing identical support removes it.</div>
+    </div>
+    <div class="box opt" id="optNload">Nodal load
+      F<sub>x</sub> <input id="nFx" value="0">
+      F<sub>y</sub> <input id="nFy" value="-P">
+      M <input id="nM" value="0">
+      <div class="muted">+X right, +Y up, M counter‑clockwise +; all zero removes the load.</div>
+    </div>
+    <div class="box opt" id="optMload">Member load
+      <select id="mlType">
+        <option value="udl">Uniform q</option>
+        <option value="trap">Trapezoidal q₁ → q₂</option>
+        <option value="point">Point load P</option>
+        <option value="moment">Concentrated moment C</option>
+      </select>
+      <span id="mlDirWrap">direction
+        <select id="mlDir">
+          <option value="gy">global Y (+ up)</option>
+          <option value="gx">global X (+ right)</option>
+          <option value="ly">local ⊥ (member +y)</option>
+          <option value="lx">local ∥ (axial)</option>
+        </select>
+      </span>
+      <div id="mlDist">q₁ <input id="mlV1" value="-q"><span id="mlQ2"> q₂ <input id="mlV2" value="-q"></span>
+        from x₁ <input id="mlX1" placeholder="0"> to x₂ <input id="mlX2" placeholder="L"></div>
+      <div id="mlPoint">P <input id="mlP" value="-P"> at x <input id="mlXp" placeholder="L/2"></div>
+      <div id="mlMom">C <input id="mlC" value="M0"> (CCW +) at x <input id="mlXm" placeholder="L/2"></div>
+      <div class="muted">x is measured from the member's first node (see the hint when hovering a member);
+        distributed loads are per unit member length.</div>
+    </div>
+  </div>
+  <!-- 5. editor of the selected node / member (filled by JS) -->
+  <div id="selection"></div>
+  <!-- 6. default member properties -->
+  <div class="box" id="defaults">
+    <span id="defNum">New members: EI <input id="defEI" type="number" value="100000" class="w80"> kN·m²,
+      EA <input id="defEA" type="number" value="2000000" class="w80"> kN</span>
+    <span id="defSym" hidden>New members: EI factor <input id="defEIf" value="1"> × EI (e.g. 2, 1/2)</span>
+    <button id="btnApplyAll" class="small">apply to all members</button>
+  </div>
+  <!-- 7. display options -->
+  <div class="box" id="display">
+    Show
+    <label><input type="checkbox" id="chkLoads" checked> Loads</label>
+    <label><input type="checkbox" id="chkReac" checked> Reactions</label>
+    <label><input type="checkbox" id="chkDef" checked> Deformed shape</label><br>
+    <label><input type="checkbox" id="chkN"> N</label>
+    <label><input type="checkbox" id="chkV" checked> V</label>
+    <label><input type="checkbox" id="chkM" checked> M</label>
+    <label><input type="checkbox" id="chkVals" checked> Values</label>
+    <label><input type="checkbox" id="chkSnap" checked> Snap to grid</label><br>
+    <label class="nowrap">Diagram scale <input type="range" id="rngDiag" min="-1" max="1" step="0.05" value="0"></label><br>
+    <label class="nowrap">Deformation <input type="range" id="rngDef" min="-1" max="1" step="0.05" value="0"></label><br>
+    M labels
+    <select id="selMlabel">
+      <option value="signed">signed (bottom tension +)</option>
+      <option value="abs">absolute values</option>
+    </select>
+  </div>
+  <!-- 8. examples / view -->
+  <div class="row">Examples <select id="examples"></select><br>
+    <button id="btnFit">Fit view</button>
+    <button id="btnUndo">Undo</button>
+    <button id="btnClear">Clear</button>
+  </div>
+  <!-- 9. results (filled by JS) -->
+  <div id="result"></div>
+  <!-- 10. JSON import / export -->
+  <details class="row">
+    <summary>JSON import / export</summary>
+    <textarea id="json" spellcheck="false"></textarea>
+    <button id="btnExport">Export to text box</button>
+    <button id="btnImport">Import from text box</button>
+    <button id="btnDownload">Download .json</button>
+  </details>
+  <!-- 11. help -->
+  <details class="row" id="help">
+    <summary>Help / conventions</summary>
+    <p><b>Units (numeric mode).</b> kN, m, kN/m, kN·m; EI in kN·m², EA in kN (defaults EI = 10⁵ kN·m²,
+      EA = 2×10⁶ kN). Tick “neglect axial deformation” to make all members axially rigid (EA = ∞) while
+      keeping numeric EI.</p>
+    <p><b>Symbolic mode.</b> Members carry a stiffness <i>factor</i> × EI (1, 2, 1/2 …) and are axially
+      rigid, as in slope‑deflection / moment distribution. Load values may contain one symbol each
+      (<code>P</code>, <code>q</code>, <code>M0</code>, …). The structure is analysed once for every symbol
+      (unit value) and all results are exact linear combinations, e.g. <code>3/8 qL − 1/4 P</code>. Forces
+      and moments are independent of EI; rotations and deflections are reported as <code>…/EI</code>. With
+      “lengths in multiples of L” the coordinates are read in units of L and the power of L in every result
+      follows from dimensional analysis (force ∝ qL, moment ∝ qL², rotation ∝ qL³/EI, deflection ∝ qL⁴/EI)
+      – use each symbol for one load type only (P for forces, q for distributed loads, M0 for couples). The
+      “plot values” of the symbols are used only to draw the diagrams and the deformed shape and to locate
+      extrema. If axial rigidity makes an axial force statically indeterminate (e.g. a beam between two
+      pins) that force is reported as 0 with a warning.</p>
+    <p><b>Member direction.</b> Members are created from their left end to their right end (vertical members
+      from bottom to top); this defines the local x axis, and the local y axis is x rotated 90°
+      counter‑clockwise (up for a beam, to the left for a column). The direction can be reversed in the
+      member editor. <b>N</b>: tension positive. <b>V</b>: positive when the resultant transverse force on
+      the part between the start and the section acts towards +y (for a beam: upward force on the left
+      part); drawn on the +y side. <b>M</b>: positive when the −y side is in tension (bottom tension for a
+      beam); <b>the moment diagram is always drawn on the tension side.</b></p>
+    <p><b>Tools.</b> <i>Add node</i> on a member splits it (loads are split consistently). <i>Add member</i>:
+      click two nodes (clicking empty space creates a node). <i>Release</i>: click a node (all member ends
+      there), near a member end (that end only) or in the middle of a member (a node with the release is
+      inserted); the same release again removes it. <i>Support</i> / <i>Node load</i>: click a node (or a
+      member, which is split). <i>Member load</i>: click a member. <i>Move</i>: drag a node. <i>Delete</i>
+      on an intermediate node of a straight member merges the two segments. <i>Select</i> opens an editor
+      for a node (coordinates, support, load) or a member (stiffness, releases, loads, direction). Drag
+      empty space to pan, wheel to zoom, right‑click / Esc to cancel, Ctrl+Z to undo.</p>
+    <p><b>Analysis.</b> Direct stiffness method, 3 DOF per node, Euler–Bernoulli members with exact
+      (work‑equivalent) member loads. Released member‑end DOFs are condensed out and recovered afterwards
+      (kinks / slips appear in the deformed shape). Supports and axial‑rigidity conditions are treated as
+      constraints (null‑space method); their multipliers are the reactions / axial forces. Internal forces
+      are evaluated by statics along each member and deflections are the exact Euler–Bernoulli solution, so
+      textbook fractions (5/384, 1/8, 3/8 …) are reproduced to machine precision. Degree of static
+      indeterminacy: n<sub>s</sub> = 3m + r − 3j − e<sub>c</sub> (m members, r reaction components,
+      j connected nodes, e<sub>c</sub> equations of condition; at a node where every member end is hinged
+      e<sub>c</sub> counts one less). A mechanism (singular stiffness on the constrained space) is reported
+      as unstable.</p>
+  </details>
+  <!-- 12. attribution -->
+  <footer class="app-footer">
+    <b>Beam &amp; Frame Analysis</b> · developed by Shenghan Zhang<br>
+    Department of Civil and Environmental Engineering<br>
+    The Hong Kong University of Science and Technology (HKUST)<br>
+    Feedback and error reports: <a href="mailto:ceshenghan@ust.hk">ceshenghan@ust.hk</a><br>
+    <span class="fine">&copy; 2026 Shenghan Zhang, HKUST. All rights reserved. Intended for teaching;
+      please check results independently before using them for design. Version 1.0 · November 2026</span>
+  </footer>
+</div>
+<!-- ============================ drawing area ============================ -->
+<div id="main">
+  <canvas id="cv"></canvas>
+  <div id="hint"></div>
+  <div id="stamp">&copy; 2026 Shenghan Zhang · HKUST · CIVL 3310</div>
+</div>
+<noscript><p style="padding:20px">This tool needs JavaScript enabled.</p></noscript>
+<!-- scripts: order matters (each file uses the previous ones) -->
+<script src="js/01-core.js"></script>
+<script src="js/02-model.js"></script>
+<script src="js/03-solver.js"></script>
+<script src="js/04-draw.js"></script>
+<script src="js/05-ui.js"></script>
+</body>
+</html>
