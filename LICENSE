@@ -1,21 +1,61 @@
-MIT License
+Beam & Frame Analysis
+Copyright (c) 2026 Shenghan Zhang,
+Department of Civil and Environmental Engineering,
+The Hong Kong University of Science and Technology (HKUST).
+All rights reserved.
 
-Copyright (c) 2026 ceshenghan
+LICENSE – PERSONAL LEARNING USE ONLY
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. Permitted use
+   You may access and run this software (the HTML, CSS and JavaScript files
+   in this folder, together with its documentation, examples and graphical
+   output, collectively the "Software") solely for your own personal,
+   non-commercial learning and study, including coursework for courses in
+   which the Software is provided by the author (e.g. CIVL 3310 Structural
+   Analysis at HKUST).
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   Screenshots or printouts of results produced with the Software may be
+   included in your own coursework submissions and personal study notes,
+   provided the copyright notice shown on the drawing is not removed.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2. Restrictions
+   Except as expressly permitted above, or with the prior written permission
+   of the author, you may not:
+   a) copy, reproduce, redistribute, publish, upload, mirror or share the
+      Software or any part of it, in source or any other form;
+   b) modify, adapt, translate, or create derivative works based on the
+      Software, or incorporate any part of it into other software;
+   c) use the Software for any commercial purpose, paid instruction or
+      tutoring, or for professional engineering design or certification;
+   d) remove, alter or obscure any copyright, authorship or licence notice.
+
+3. Ownership
+   The Software is licensed, not sold. All rights, title and interest in the
+   Software, including all intellectual property rights, remain with the
+   copyright holder. No rights are granted other than those expressly
+   stated in this licence.
+
+4. No warranty
+   THE SOFTWARE IS PROVIDED FOR EDUCATIONAL PURPOSES "AS IS", WITHOUT
+   WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+   THE WARRANTIES OF ACCURACY, MERCHANTABILITY, FITNESS FOR A PARTICULAR
+   PURPOSE AND NON-INFRINGEMENT. Results must be checked independently and
+   must not be relied upon for the design, assessment or construction of
+   real structures.
+
+5. Limitation of liability
+   IN NO EVENT SHALL THE AUTHOR OR HKUST BE LIABLE FOR ANY CLAIM, DAMAGES OR
+   OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.
+
+6. Termination
+   This licence terminates automatically if you breach any of its terms.
+   On termination you must stop using the Software and delete any copies
+   in your possession.
+
+7. Governing law
+   This licence is governed by the laws of the Hong Kong Special
+   Administrative Region.
+
+Permission requests and enquiries:
+Shenghan Zhang – ceshenghan@ust.hk
